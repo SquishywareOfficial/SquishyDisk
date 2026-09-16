@@ -1,0 +1,29 @@
+SquishyDisk
+Copyright (c) 2026 SquishyDisk contributors
+
+The original SquishyDisk application code, build scripts, documentation, and
+artwork are licensed under the Do What The Fuck You Want To Public License,
+Version 2 (WTFPL), as published by Sam Hocevar.
+
+The complete, unmodified license text is in COPYING.WTFPL.
+
+NO WARRANTY
+
+This program comes without any warranty, to the extent permitted by
+applicable law. It is provided "AS IS", without express or implied warranties,
+including merchantability, fitness for a particular purpose, or
+noninfringement. To the extent permitted by applicable law, the authors and
+contributors are not liable for claims, damages, or other liability arising
+from the software or its use.
+
+THIRD-PARTY COMPONENTS
+
+This license does not replace the licenses of bundled third-party components.
+Microsoft DiskSpd, the Microsoft .NET runtime, and WPF retain their MIT license
+notices. Other notices shipped with .NET are also retained. The DiskSpd
+integration patch is distributed with DiskSpd under MIT.
+The independent smartctl executable and its drive database retain their
+GPL-2.0-or-later terms; matching source is supplied with releases.
+
+See THIRD-PARTY-NOTICES.md and the full license texts under vendor/. These
+notices are embedded in the portable EXE and available in its About window.

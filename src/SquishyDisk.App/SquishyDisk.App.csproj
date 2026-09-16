@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>SquishyDisk</AssemblyName>
+    <ApplicationManifest>$(MSBuildProjectDirectory)/obj/$(Configuration)/SquishyDisk.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets/app.ico</ApplicationIcon>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <RuntimeFrameworkVersion>10.0.12</RuntimeFrameworkVersion>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>embedded</DebugType>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SquishyDisk.Windows/SquishyDisk.Windows.csproj" />
+    <EmbeddedResource Include="../../vendor/dotnet/*.txt" LogicalName="ThirdParty.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../LICENSE" LogicalName="AppLicense" />
+    <EmbeddedResource Include="../../COPYING.WTFPL" LogicalName="AppWtfpl" />
+    <EmbeddedResource Include="../../THIRD-PARTY-NOTICES.md" LogicalName="AppThirdPartySummary" />
+  </ItemGroup>
+  <Target Name="VersionApplicationManifest" BeforeTargets="PrepareForBuild">
+    <MakeDir Directories="$(MSBuildProjectDirectory)/obj/$(Configuration)" />
+    <Copy SourceFiles="app.manifest" DestinationFiles="$(ApplicationManifest)" />
+    <XmlPoke XmlInputPath="$(ApplicationManifest)" Query="/*[local-name()='assembly']/*[local-name()='assemblyIdentity']/@version" Value="$(Version)" />
+  </Target>
+</Project>

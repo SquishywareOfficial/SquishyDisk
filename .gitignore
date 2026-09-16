@@ -1,0 +1,9 @@
+.tools/
+artifacts/
+**/bin/
+**/obj/
+.vs/
+*.user
+DiskSpdUI.settings.json
+SquishyDisk.settings.json
+/TODO.txt

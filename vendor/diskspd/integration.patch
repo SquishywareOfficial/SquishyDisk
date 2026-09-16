@@ -1,0 +1,99 @@
+diff --git a/CmdRequestCreator/CmdRequestCreator.cpp b/CmdRequestCreator/CmdRequestCreator.cpp
+index 0dc0ecb..0c79154 100644
+--- a/CmdRequestCreator/CmdRequestCreator.cpp
++++ b/CmdRequestCreator/CmdRequestCreator.cpp
+@@ -149,6 +149,8 @@ int __cdecl main(int argc, const char* argv[])
+         return 0;
+     }
+ 
++    g_hEventStarted = cmdLineParser.GetEventStarted();
++    g_hEventFinished = cmdLineParser.GetEventFinished();
+     synch.pfnCallbackTestStarted = TestStarted;
+     synch.pfnCallbackTestFinished = TestFinished;
+ 
+@@ -216,4 +218,4 @@ int __cdecl main(int argc, const char* argv[])
+     }
+ 
+     return 0;
+-}
+\ No newline at end of file
++}
+diff --git a/Common/CmdLineParser.h b/Common/CmdLineParser.h
+index c1010d7..cf8d540 100644
+--- a/Common/CmdLineParser.h
++++ b/Common/CmdLineParser.h
+@@ -40,6 +40,9 @@ public:
+ 
+     bool ParseCmdLine(const int argc, const char *argv[], Profile *pProfile, struct Synchronization *synch, SystemInformation *pSystem = nullptr);
+ 
++    HANDLE GetEventStarted() const { return _hEventStarted; }
++    HANDLE GetEventFinished() const { return _hEventFinished; }
++
+ private:
+     bool _ReadParametersFromCmdLine(const int argc, const char *argv[], Profile *pProfile, struct Synchronization *synch, bool& fXMLProfile);
+     bool _ReadParametersFromXmlFile(const char *pszPath, Profile *pProfile, vector<Target> *pvSubstTargets);
+diff --git a/Common/Common.cpp b/Common/Common.cpp
+index 98ed35e..5a6ca6a 100644
+--- a/Common/Common.cpp
++++ b/Common/Common.cpp
+@@ -1450,7 +1450,7 @@ string Target::GetXml(UINT32 indent) const
+     string sXml;
+ 
+     AddXmlInc(sXml, "<Target>\n");
+-    AddXml(sXml, "<Path>" + _sPath + "</Path>\n");
++    AddXml(sXml, "<Path>" + EscapeXmlText(_sPath) + "</Path>\n");
+ 
+     sprintf_s(buffer, _countof(buffer), "<BlockSize>%u</BlockSize>\n", _dwBlockSize);
+     AddXml(sXml, buffer);
+@@ -1532,7 +1532,7 @@ string Target::GetXml(UINT32 indent) const
+         AddXml(sXml, buffer);
+         if (_sRandomDataWriteBufferSourcePath != "")
+         {
+-            AddXml(sXml, "<FilePath>" + _sRandomDataWriteBufferSourcePath + "</FilePath>\n");
++            AddXml(sXml, "<FilePath>" + EscapeXmlText(_sRandomDataWriteBufferSourcePath) + "</FilePath>\n");
+         }
+         AddXmlDec(sXml, "</RandomDataSource>\n");
+     }
+diff --git a/Common/Common.h b/Common/Common.h
+index bde10c1..61d42f3 100644
+--- a/Common/Common.h
++++ b/Common/Common.h
+@@ -51,7 +51,24 @@ SOFTWARE.
+ #include "ThroughputMeter.h"
+ #include "Version.h"
+ 
+-using namespace std;
++using namespace std;
++
++// XML text nodes must escape paths containing characters such as '&'.
++inline string EscapeXmlText(const string& value)
++{
++    string result;
++    for (char ch : value)
++    {
++        switch (ch)
++        {
++        case '&': result += "&amp;"; break;
++        case '<': result += "&lt;"; break;
++        case '>': result += "&gt;"; break;
++        default: result += ch; break;
++        }
++    }
++    return result;
++}
+ 
+ TRACELOGGING_DECLARE_PROVIDER(g_hEtwProvider);
+ 
+diff --git a/XmlResultParser/XmlResultParser.cpp b/XmlResultParser/XmlResultParser.cpp
+index 500d4b2..08bbee0 100644
+--- a/XmlResultParser/XmlResultParser.cpp
++++ b/XmlResultParser/XmlResultParser.cpp
+@@ -82,7 +82,7 @@ void XmlResultParser::_PrintTargetResults(const TargetResults& results)
+     // TODO: results.readBucketizer;
+     // TODO: results.writeBucketizer;
+ 
+-    _Print("<Path>%s</Path>\n", results.sPath.c_str());
++    _Print("<Path>%s</Path>\n", EscapeXmlText(results.sPath).c_str());
+     _Print("<BytesCount>%I64u</BytesCount>\n", results.ullBytesCount);
+     _Print("<FileSize>%I64u</FileSize>\n", results.ullFileSize);
+     _Print("<IOCount>%I64u</IOCount>\n", results.ullIOCount);

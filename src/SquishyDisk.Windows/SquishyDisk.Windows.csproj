@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0-windows</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SquishyDisk.Core/SquishyDisk.Core.csproj" />
+    <EmbeddedResource Include="../../vendor/diskspd/diskspd.exe" LogicalName="DiskSpd.Engine.exe" />
+    <EmbeddedResource Include="../../vendor/diskspd/LICENSE.txt" LogicalName="DiskSpd.License.txt" />
+    <EmbeddedResource Include="../../vendor/diskspd/engine.sha256" LogicalName="DiskSpd.Engine.sha256" />
+    <EmbeddedResource Include="../../vendor/smartctl/smartctl.exe" LogicalName="Smartctl.smartctl.exe" />
+    <EmbeddedResource Include="../../vendor/smartctl/drivedb.h" LogicalName="Smartctl.drivedb.h" />
+    <EmbeddedResource Include="../../vendor/smartctl/COPYING.txt" LogicalName="Smartctl.COPYING.txt" />
+    <EmbeddedResource Include="../../vendor/smartctl/AUTHORS.txt" LogicalName="Smartctl.AUTHORS.txt" />
+  </ItemGroup>
+</Project>

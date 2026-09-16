@@ -1,0 +1,54 @@
+<Window x:Class="SquishyDisk.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:SquishyDisk.App"
+  Title="SquishyDisk" Width="960" Height="880" MinWidth="780" MinHeight="680" Style="{StaticResource {x:Type Window}}" WindowStartupLocation="CenterScreen" Closing="Window_Closing">
+  <TabControl x:Name="MainTabs" SelectionChanged="Tab_Changed" Background="{DynamicResource PageBrush}" BorderThickness="0" Padding="0">
+  <TabItem Header="Benchmark">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <Grid x:Name="Page" Margin="28,24,28,20"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+      <Grid Margin="0,0,0,22"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <StackPanel><TextBlock Text="SQUISHYDISK" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"/><TextBlock Text="Storage benchmark" FontSize="28" FontWeight="SemiBold" Margin="0,4,0,3"/></StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top"><ComboBox x:Name="ThemePicker" Width="102" SelectionChanged="Theme_Changed" AutomationProperties.Name="Color theme" Margin="0,0,8,0"/><Button Content="Settings" Click="Settings_Click" Margin="0,0,8,0"/><Button Content="About" Click="About_Click"/></StackPanel>
+      </Grid>
+      <Border Grid.Row="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,18">
+        <Grid x:Name="Configuration"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="130"/><ColumnDefinition Width="112"/><ColumnDefinition Width="96"/></Grid.ColumnDefinitions>
+          <TextBlock Text="TEST DRIVE" Style="{StaticResource Muted}" FontWeight="SemiBold" Margin="0,0,0,7"/>
+          <TextBlock Grid.Column="2" Text="PRESET" Style="{StaticResource Muted}" FontWeight="SemiBold" Margin="10,0,0,7"/>
+          <TextBlock Grid.Column="3" Text="TEST SIZE" Style="{StaticResource Muted}" FontWeight="SemiBold" Margin="10,0,0,7"/>
+          <TextBlock Grid.Column="4" Text="PASSES" Style="{StaticResource Muted}" FontWeight="SemiBold" Margin="10,0,0,7"/>
+          <ComboBox Grid.Row="1" x:Name="DrivePicker" SelectionChanged="Drive_Changed" AutomationProperties.Name="Test drive"/>
+          <Button Grid.Row="1" Grid.Column="1" Content="Folder…" Margin="8,0,0,0" Click="Browse_Click" ToolTip="Choose a writable folder on a local, removable, or network drive"/>
+          <ComboBox Grid.Row="1" Grid.Column="2" x:Name="PresetPicker" Margin="10,0,0,0" SelectionChanged="Preset_Changed" AutomationProperties.Name="Benchmark preset"/>
+          <ComboBox Grid.Row="1" Grid.Column="3" x:Name="SizePicker" Margin="10,0,0,0" SelectionChanged="Config_Changed" AutomationProperties.Name="Test file size"/>
+          <ComboBox Grid.Row="1" Grid.Column="4" x:Name="PassPicker" Margin="10,0,0,0" SelectionChanged="Config_Changed" AutomationProperties.Name="Number of passes"/>
+          <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Margin="0,12,0,0"><TextBlock x:Name="DriveDescription" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="FolderDescription" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0"/></StackPanel>
+        </Grid>
+      </Border>
+      <Grid Grid.Row="2" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="170"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Button x:Name="RunButton" Content="▶  Run all tests" Style="{StaticResource Primary}" Click="RunAll_Click" Padding="14,12"/>
+        <TextBlock x:Name="SummaryLabel" Grid.Column="1" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="16,0,8,0" TextWrapping="Wrap"/>
+        <ComboBox x:Name="UnitPicker" Grid.Column="2" Width="142" SelectionChanged="Unit_Changed" AutomationProperties.Name="Result unit"/>
+      </Grid>
+      <Border Grid.Row="3" x:Name="ResultsPanel" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
+        <StackPanel>
+          <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="158"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="TEST" Style="{StaticResource Muted}" Margin="12,8" FontWeight="SemiBold"/><TextBlock Grid.Column="1" Text="READ" HorizontalAlignment="Center" Margin="0,8" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/><TextBlock Grid.Column="2" Text="WRITE" HorizontalAlignment="Center" Margin="0,8" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"/></Grid>
+          <ItemsControl x:Name="RowsList"><ItemsControl.ItemTemplate><DataTemplate>
+            <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="158"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+              <Button Click="RunRow_Click" Tag="{Binding Index}" HorizontalContentAlignment="Left" Padding="12" Margin="0,0,8,0" IsEnabled="{Binding CanRun}" AutomationProperties.Name="{Binding AccessibleName}"><StackPanel><TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold"/><TextBlock Text="{Binding Detail}" Style="{StaticResource Muted}" Margin="0,5,0,0"/></StackPanel></Button>
+              <Button Grid.Column="1" Click="RunCell_Click" Tag="{Binding Read}" Margin="0,0,8,0" Padding="12,8" Background="{DynamicResource SoftBrush}" IsEnabled="{Binding CanRun}" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding Read.AccessibleName}"><Grid Height="60"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="{Binding Read.Value}" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center" FontFamily="Segoe UI Variable Display, Segoe UI"/><TextBlock Text="{Binding Read.Hint}" Style="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Grid></Button>
+              <Button Grid.Column="2" Click="RunCell_Click" Tag="{Binding Write}" Padding="12,8" Background="{DynamicResource SoftBrush}" IsEnabled="{Binding CanRun}" HorizontalContentAlignment="Stretch" AutomationProperties.Name="{Binding Write.AccessibleName}"><Grid Height="60"><StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"><TextBlock Text="{Binding Write.Value}" FontSize="32" FontWeight="SemiBold" HorizontalAlignment="Center" FontFamily="Segoe UI Variable Display, Segoe UI"/><TextBlock Text="{Binding Write.Hint}" Style="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,2,0,0"/></StackPanel></Grid></Button>
+            </Grid>
+          </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+          <TextBlock x:Name="ResultCaption" Text="Click a row to run read and write tests, or a cell to run one." Style="{StaticResource Muted}" Margin="12,2,0,5"/>
+        </StackPanel>
+      </Border>
+      <StackPanel Grid.Row="4" Margin="0,16,0,0"><ProgressBar x:Name="RunProgress" Height="5" Minimum="0" Maximum="1" BorderThickness="0" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource LineBrush}"/>
+        <Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="StatusLabel" Text="Ready to benchmark" TextWrapping="Wrap" FontWeight="SemiBold"/><TextBlock Grid.Column="1" x:Name="TimeLabel" Style="{StaticResource Muted}" Margin="14,0,0,0"/></Grid>
+        <TextBlock x:Name="NoticeLabel" Foreground="{DynamicResource MutedBrush}" TextWrapping="Wrap" FontSize="12" Visibility="Collapsed" Margin="0,8,0,0"/>
+      </StackPanel>
+      <Grid Grid.Row="5" Margin="0,18,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Temporary test files are removed after the run." Style="{StaticResource Muted}" VerticalAlignment="Center"/><Button x:Name="CopyButton" Grid.Column="1" Content="Copy results" Click="Copy_Click" IsEnabled="False" Margin="12,0,8,0"/><Button x:Name="ExportButton" Grid.Column="2" Content="Export…" Click="Export_Click" IsEnabled="False"/></Grid>
+      <Expander Grid.Row="6" Header="Technical details" Margin="0,18,0,0"><TextBox x:Name="DetailsBox" IsReadOnly="True" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Height="200" FontFamily="Consolas" FontSize="11" Margin="0,8,0,0"/></Expander>
+    </Grid>
+  </ScrollViewer>
+  </TabItem>
+  <TabItem Header="Drive Info"><local:DriveInfoControl x:Name="DrivePanel"/></TabItem>
+  </TabControl>
+</Window>

@@ -1,0 +1,2 @@
+# These files are pinned byte-for-byte to upstream releases.
+vendor/smartctl/* -text

@@ -1,0 +1,45 @@
+<UserControl x:Class="SquishyDisk.App.DriveInfoControl" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Foreground="{DynamicResource TextBrush}" FontFamily="Segoe UI" FontSize="14">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel x:Name="DrivePage" Margin="28,24,28,28">
+      <TextBlock Text="Drive Info" FontSize="28" FontWeight="SemiBold"/>
+      <TextBlock Text="Drive health, SMART data and self-tests" Style="{StaticResource Muted}" Margin="0,4,0,18"/>
+      <Grid Margin="0,0,0,10"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <ComboBox x:Name="DevicePicker" DisplayMemberPath="DisplayName" SelectionChanged="Device_Changed" AutomationProperties.Name="Physical drive" MinWidth="160"/>
+        <Button x:Name="RefreshButton" Grid.Column="1" Content="Refresh" Click="Refresh_Click" Margin="8,0,0,0"/>
+        <Button x:Name="RescanButton" Grid.Column="2" Content="Rescan" Click="Rescan_Click" Margin="8,0,0,0"/>
+      </Grid>
+      <TextBlock x:Name="MappingLabel" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,14">
+        <StackPanel>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <StackPanel><TextBlock Text="Reported health" Style="{StaticResource Muted}"/><TextBlock x:Name="HealthLabel" Text="Unavailable" FontSize="28" FontWeight="SemiBold" Margin="0,2,0,6"/></StackPanel>
+            <Button x:Name="AccessButton" Grid.Column="1" Content="Enable drive access" Click="Access_Click" VerticalAlignment="Top" ToolTip="Allow an administrator helper to read drives and run self-tests"/>
+          </Grid>
+          <TextBlock x:Name="ReadLabel" Style="{StaticResource Muted}" TextWrapping="Wrap"/>
+          <TextBlock Text="A passed health check does not guarantee that a drive will not fail." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,6,0,0"/>
+          <ItemsControl x:Name="SummaryFields" Margin="0,16,0,0"><ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="3"/></ItemsPanelTemplate></ItemsControl.ItemsPanel><ItemsControl.ItemTemplate><DataTemplate>
+            <StackPanel Margin="0,0,16,13"><TextBlock Text="{Binding Name}" Style="{StaticResource Muted}"/><TextBlock Text="{Binding Value}" TextWrapping="Wrap" Margin="0,3,0,0"/></StackPanel>
+          </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+        </StackPanel>
+      </Border>
+      <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource LineBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,14"><StackPanel>
+        <TextBlock Text="Self-test" FontSize="18" FontWeight="SemiBold"/>
+        <TextBlock x:Name="TestLabel" Text="Select a drive to view self-test support." TextWrapping="Wrap" Margin="0,7,0,8"/>
+        <ProgressBar x:Name="TestProgress" Height="5" Maximum="100" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource LineBrush}" BorderThickness="0" Visibility="Collapsed" Margin="0,0,0,12"/>
+        <WrapPanel><Button x:Name="ShortButton" Content="Short test" Click="Short_Click" Margin="0,0,8,6"/><Button x:Name="ExtendedButton" Content="Extended test" Click="Extended_Click" Margin="0,0,8,6"/><Button x:Name="AbortButton" Content="Abort test" Click="Abort_Click" Margin="0,0,8,6"/></WrapPanel>
+        <TextBlock x:Name="EstimateLabel" Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+      </StackPanel></Border>
+      <TextBlock x:Name="MessageLabel" Text="Open this tab to discover drives." TextWrapping="Wrap" Margin="0,0,0,14"/>
+      <Expander Header="SMART attributes" Margin="0,0,0,14"><StackPanel Margin="0,8,0,0">
+        <TextBlock Text="ATA values use the drive manufacturer's definitions. NVMe and SCSI values appear under Protocol data and logs." Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <DataGrid x:Name="AttributeTable" IsReadOnly="True" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" MaxHeight="350" HeadersVisibility="Column" GridLinesVisibility="Horizontal" BorderBrush="{DynamicResource LineBrush}" Background="{DynamicResource PanelBrush}" Foreground="{DynamicResource TextBrush}" RowBackground="{DynamicResource PanelBrush}" HorizontalGridLinesBrush="{DynamicResource LineBrush}">
+          <DataGrid.Resources><Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="{DynamicResource SoftBrush}"/><Setter Property="Foreground" Value="{DynamicResource TextBrush}"/><Setter Property="Padding" Value="8"/></Style><Style TargetType="DataGridCell"><Setter Property="Padding" Value="5"/><Setter Property="BorderThickness" Value="0"/></Style></DataGrid.Resources>
+          <DataGrid.Columns><DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="44"/><DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" MinWidth="180"/><DataGridTextColumn Header="Current" Binding="{Binding Current}" Width="76"/><DataGridTextColumn Header="Worst" Binding="{Binding Worst}" Width="64"/><DataGridTextColumn Header="Threshold" Binding="{Binding Threshold}" Width="86"/><DataGridTextColumn Header="Raw" Binding="{Binding Raw}" Width="180"/><DataGridTextColumn Header="Failed" Binding="{Binding WhenFailed}" Width="90"/></DataGrid.Columns>
+        </DataGrid>
+      </StackPanel></Expander>
+      <Expander Header="Protocol data and logs" Margin="0,0,0,14"><TextBox x:Name="LogsBox" IsReadOnly="True" FontFamily="Consolas" FontSize="12" TextWrapping="NoWrap" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Height="260" Margin="0,8,0,0"/></Expander>
+      <WrapPanel><Button x:Name="CopyDriveButton" Content="Copy drive report" Click="Copy_Click" Margin="0,0,8,0"/><Button x:Name="ExportDriveButton" Content="Export drive report…" Click="Export_Click"/></WrapPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

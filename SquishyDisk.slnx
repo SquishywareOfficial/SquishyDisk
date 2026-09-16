@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="src/SquishyDisk.Core/SquishyDisk.Core.csproj" />
+  <Project Path="src/SquishyDisk.Windows/SquishyDisk.Windows.csproj" />
+  <Project Path="src/SquishyDisk.App/SquishyDisk.App.csproj" />
+  <Project Path="tests/SquishyDisk.Tests/SquishyDisk.Tests.csproj" />
+</Solution>
