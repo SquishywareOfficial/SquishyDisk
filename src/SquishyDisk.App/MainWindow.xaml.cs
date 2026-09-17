@@ -164,7 +164,7 @@ public partial class MainWindow : Window
         {
             var best = session?.Best(row.Index, cell.Direction);
             int completed = session?.Results.Count(p => p.Row == row.Index && p.Direction == cell.Direction) ?? 0;
-            cell.Set(best, Unit, completed == 0 ? null : $"Best of {completed} · {CellViewModel.UnitLabel(Unit)}");
+            cell.Set(best, Unit, completed == 0 ? null : $"Best of {completed} {(completed == 1 ? "pass" : "passes")}");
         }
     }
     private async void RunAll_Click(object sender, RoutedEventArgs e)
@@ -245,7 +245,7 @@ public partial class MainWindow : Window
     }
     private void SetRunning(bool running)
     {
-        Configuration.IsEnabled = !running;
+        Configuration.IsEnabled = SettingsButton.IsEnabled = !running;
         foreach (var row in rows) row.Enable(!running);
         RunButton.Content = running ? "■  Stop" : "▶  Run all tests";
         RunButton.IsEnabled = true;
@@ -265,23 +265,7 @@ public partial class MainWindow : Window
     }
     private void About_Click(object sender, RoutedEventArgs e)
     {
-        var text = ProductInfo.DisplayName + "\nSquishyware\nPortable storage benchmark and drive information for Windows\n\nPowered by Microsoft DiskSpd 2.3, built from MIT-licensed source.\nSource revision: 5e7025bfc9d1364f185d4c30963d7ac79195435e\nhttps://github.com/microsoft/diskspd\n\nIndependent application; not affiliated with Microsoft or Crystal Dew World.\n\n" + EngineStore.License;
-        var assembly = typeof(MainWindow).Assembly;
-        foreach (var resource in new[] { "AppLicense", "AppWtfpl", "AppThirdPartySummary" })
-        {
-            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
-            text += "\n\n" + reader.ReadToEnd();
-        }
-        foreach (var resource in assembly.GetManifestResourceNames().Where(n => n.StartsWith("ThirdParty.", StringComparison.Ordinal)))
-        {
-            using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
-            text += "\n\n" + resource + "\n\n" + reader.ReadToEnd();
-        }
-        text = text.Replace("built from MIT-licensed source.", "built from MIT-licensed source with notification and XML-path fixes.", StringComparison.Ordinal);
-        text += "\n\nDrive information: smartctl 7.5, an unmodified independent program from smartmontools.\nGPL-2.0-or-later. https://www.smartmontools.org\nMatching source package: smartmontools-7.5.tar.gz, supplied alongside this app's release.\n\n" + SmartctlPayload.Notice;
-        var window = new Window { Title = "About SquishyDisk", Owner = this, Width = 680, Height = 550, WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            Content = new TextBox { Text = text, IsReadOnly = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(20) } };
-        window.ShowDialog();
+        new AboutWindow { Owner = this }.ShowDialog();
     }
     private void Copy_Click(object sender, RoutedEventArgs e)
     {
@@ -334,6 +318,9 @@ public partial class MainWindow : Window
         DrivePanel.IsEnabled = false;
         try
         {
+            // Finish WPF's cancelled Closing event before cleanup or another Close call,
+            // even when every cleanup task completes synchronously.
+            await System.Windows.Threading.Dispatcher.Yield(DispatcherPriority.Background);
             cancellation?.Cancel();
             if (activeRun != null) await activeRun;
             if (!await DrivePanel.CanCloseAsync()) return;

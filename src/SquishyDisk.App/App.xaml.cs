@@ -19,7 +19,14 @@ public partial class App : Application
         }
         instanceMutex = new Mutex(true, @"Local\SquishyDisk-" + Environment.UserName, out bool first);
         if (!first) { MessageBox.Show("SquishyDisk is already open.", "SquishyDisk"); Shutdown(); return; }
+        string? verificationOutput = e.Args.Length == 2 && e.Args[0] == "--verify-ui" ? Path.GetFullPath(e.Args[1]) : null;
         DispatcherUnhandledException += (_, error) => {
+            if (verificationOutput != null)
+            {
+                Directory.CreateDirectory(verificationOutput);
+                File.WriteAllText(Path.Combine(verificationOutput, "ui-error.txt"), error.Exception.ToString());
+                error.Handled = true; Shutdown(1); return;
+            }
             MessageBox.Show(error.Exception.Message, "SquishyDisk", MessageBoxButton.OK, MessageBoxImage.Error);
             error.Handled = true;
         };
@@ -27,6 +34,7 @@ public partial class App : Application
         MainWindow = window;
         if (e.Args.Length == 2 && e.Args[0] == "--verify-ui")
         {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
             window.WindowStartupLocation = WindowStartupLocation.Manual;
             window.Left = -10000; window.Top = 0; window.ShowActivated = false;
             window.Show();

@@ -14,7 +14,7 @@ public record DriveDevice(string Token, string Name, string Type, string Protoco
 }
 public record DriveField(string Name, string Value);
 public record SmartAttribute(string Id, string Name, string Current, string Worst, string Threshold, string Raw, string WhenFailed);
-public record DriveSelfTest(bool Supported, bool StatusKnown, bool Active, string Status, int? Percent = null, int? ShortMinutes = null, int? ExtendedMinutes = null);
+public record DriveSelfTest(bool Supported, bool StatusKnown, bool Active, string Status, int? Percent = null, int? ShortMinutes = null, int? ExtendedMinutes = null, string? LastResult = null);
 public record DriveSnapshot
 {
     public string AppVersion { get; init; } = ProductInfo.Version;
@@ -112,7 +112,8 @@ public static class SmartParser
         Add("Model", model); Add("Serial number", serial); Add("Firmware", Get(root, "firmware_version") ?? Get(root, "revision"));
         Add("Capacity", Bytes(capacity)); Add("Protocol", Get(root, "device", "protocol") ?? device.Protocol);
         Add("Interface / link", Get(root, "sata_version", "string") ?? Get(root, "nvme_version", "string") ?? Get(root, "scsi_transport_protocol", "name"));
-        Add("Current link", Get(root, "interface_speed", "current", "string"));
+        bool isNvme = nvme.ValueKind == JsonValueKind.Object || string.Equals(Get(root, "device", "protocol") ?? device.Protocol, "NVMe", StringComparison.OrdinalIgnoreCase);
+        Add("Current link", Get(root, "interface_speed", "current", "string") ?? (isNvme ? "Not reported by smartctl for NVMe" : null));
         Add("Temperature (°C)", Get(root, "temperature", "current") ?? Get(nvme, "temperature"));
         Add("Power-on hours", Get(root, "power_on_time", "hours") ?? Get(nvme, "power_on_hours_s") ?? Get(nvme, "power_on_hours"));
         Add("Power cycles", Get(root, "power_cycle_count") ?? Get(nvme, "power_cycles_s") ?? Get(nvme, "power_cycles"));
@@ -175,8 +176,17 @@ public static class SmartParser
         if (nvme.ValueKind == JsonValueKind.Object || At(root, "nvme_optional_admin_commands").ValueKind == JsonValueKind.Object)
         {
             value = Number(nvme, "current_self_test_operation", "value");
+            // NVMe reports the current operation separately from completed test results.
+            var table = At(nvme, "table");
+            var last = table.ValueKind == JsonValueKind.Array ? table.EnumerateArray().FirstOrDefault() : default;
+            string? lastResult = Get(last, "self_test_result", "string");
+            if (lastResult != null)
+            {
+                lastResult = (Get(last, "self_test_code", "string") ?? "Self-test") + ": " + lastResult;
+                if (Get(last, "power_on_hours") is string hours) lastResult += $" (power-on hour {hours})";
+            }
             return new(Yes(root, "nvme_optional_admin_commands", "self_test"), value.HasValue, value is > 0,
-                Get(nvme, "current_self_test_operation", "string") ?? "Status unavailable", Number(nvme, "current_self_test_completion_percent"));
+                Get(nvme, "current_self_test_operation", "string") ?? "Status unavailable", Number(nvme, "current_self_test_completion_percent"), LastResult: lastResult);
         }
         var scsiTests = root.EnumerateObject().Where(p => p.Name.StartsWith("scsi_self_test_", StringComparison.Ordinal) && p.Value.ValueKind == JsonValueKind.Object).ToList();
         bool scsiActive = scsiTests.Any(p => Yes(p.Value, "self_test_in_progress") || Number(p.Value, "result", "value") == 15);
@@ -207,6 +217,7 @@ public static class SmartParser
 public static class DriveReports
 {
     public static string Text(DriveSnapshot s) => $"SquishyDisk {s.AppVersion} · Drive Info\nRead: {s.ReadAt:O}\nReading: {(s.Stale ? "Stale" : s.Partial ? "Partial" : "Complete")}\nDevice: {s.Device.Location} ({s.Device.Name}, {s.Device.Type})\nsmartctl {s.ToolVersion} · exit bits: {s.ExitStatus}\nHealth: {s.Health}\nSelf-test: {s.SelfTest.Status}\n" +
+        (s.SelfTest.LastResult == null ? "" : $"Last self-test: {s.SelfTest.LastResult}\n") +
         string.Join("\n", s.Limitations.Select(x => "Note: " + x)) + "\n\n" + string.Join("\n", s.Fields.Select(x => $"{x.Name}: {x.Value}")) + "\n\nSMART attributes\n" +
         string.Join("\n", s.Attributes.Select(a => $"{a.Id} {a.Name} · current {a.Current} · worst {a.Worst} · threshold {a.Threshold} · raw {a.Raw} · {a.WhenFailed}")) +
         "\n\nLogs and protocol data\n" + string.Join("\n", s.Logs.Select(x => $"{x.Name}: {x.Value}"));
@@ -219,6 +230,7 @@ public static class DriveReports
         Row("Summary", "", "Health", "", "", "", s.Health, "");
         Row("Summary", "", "Reading", "", "", "", s.Stale ? "Stale" : s.Partial ? "Partial" : "Complete", "");
         Row("Summary", "", "Self-test", "", "", "", s.SelfTest.Status, "");
+        if (s.SelfTest.LastResult != null) Row("Summary", "", "Last self-test", "", "", "", s.SelfTest.LastResult, "");
         foreach (var note in s.Limitations) Row("Limitations", "", "Note", "", "", "", note, "");
         foreach (var f in s.Fields) Row("Summary", "", f.Name, "", "", "", f.Value, "");
         foreach (var a in s.Attributes) Row("ATA", a.Id, a.Name, a.Current, a.Worst, a.Threshold, a.Raw, a.WhenFailed);

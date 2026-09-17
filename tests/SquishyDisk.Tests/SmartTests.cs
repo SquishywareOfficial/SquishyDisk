@@ -50,6 +50,26 @@ internal static partial class Program
             var empty = SmartParser.Parse(SmartDevice, """{"smartctl":{"output":["No Self-tests have been logged"]}}""", 0);
             True(empty.SelfTest.Supported && empty.SelfTest.StatusKnown && !empty.SelfTest.Active);
         });
+        await Check("NVMe shows the latest self-test result separately from current activity", () => {
+            var root = System.Text.Json.Nodes.JsonNode.Parse(NvmeFixture)!;
+            root["nvme_self_test_log"] = System.Text.Json.Nodes.JsonNode.Parse("""
+                {"current_self_test_operation":{"value":0,"string":"No self-test in progress"},
+                 "table":[{"self_test_code":{"value":1,"string":"Short"},"self_test_result":{"value":0,"string":"Completed without error"},"power_on_hours":2129},
+                          {"self_test_code":{"value":1,"string":"Short"},"self_test_result":{"value":1,"string":"Aborted by command"},"power_on_hours":2128}]}
+                """);
+            var idle = SmartParser.Parse(SmartDevice, root.ToJsonString(), 0);
+            True(!idle.SelfTest.Active && idle.SelfTest.StatusKnown);
+            Equal("No self-test in progress", idle.SelfTest.Status);
+            Equal("Short: Completed without error (power-on hour 2129)", idle.SelfTest.LastResult);
+            True(DriveReports.Text(idle).Contains("Last self-test: Short: Completed without error"));
+            True(DriveReports.Csv(idle).Contains("Last self-test"));
+            True(DriveReports.Json(idle).Contains("LastResult"));
+            True(SmartParser.Parse(SmartDevice, NvmeFixture, 0).SelfTest.Active);
+            root["nvme_self_test_log"]!["table"]![0]!["self_test_result"]!["string"] = "Aborted by command";
+            True(SmartParser.Parse(SmartDevice, root.ToJsonString(), 0).SelfTest.LastResult!.Contains("Aborted by command"));
+            root["nvme_self_test_log"]!["table"] = new System.Text.Json.Nodes.JsonArray();
+            True(SmartParser.Parse(SmartDevice, root.ToJsonString(), 0).SelfTest.LastResult == null);
+        });
         await Check("SMART partial readings retain valid data and unavailable stays unknown", () => {
             var s = SmartParser.Parse(SmartDevice, AtaFixture, 4); True(s.Partial); Equal(2, s.Attributes.Count); Equal("Passed", s.Health);
             var denied = SmartParser.Parse(SmartDevice, """{"smartctl":{"exit_status":2,"messages":[{"string":"Access denied","severity":"error"}]}}""", 2);

@@ -20,7 +20,6 @@
     <EmbeddedResource Include="../../vendor/dotnet/*.txt" LogicalName="ThirdParty.%(Filename)%(Extension)" />
     <EmbeddedResource Include="../../LICENSE" LogicalName="AppLicense" />
     <EmbeddedResource Include="../../COPYING.WTFPL" LogicalName="AppWtfpl" />
-    <EmbeddedResource Include="../../THIRD-PARTY-NOTICES.md" LogicalName="AppThirdPartySummary" />
   </ItemGroup>
   <Target Name="VersionApplicationManifest" BeforeTargets="PrepareForBuild">
     <MakeDir Directories="$(MSBuildProjectDirectory)/obj/$(Configuration)" />

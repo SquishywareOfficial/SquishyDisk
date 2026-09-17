@@ -112,10 +112,12 @@ public partial class DriveInfoControl : UserControl, IAsyncDisposable
         SummaryFields.ItemsSource = s.Fields; AttributeTable.ItemsSource = s.Attributes;
         LogsBox.Text = s.Logs.Count == 0 ? "No logs were returned by this drive." : string.Join("\n", s.Logs.Select(f => f.Name + ": " + f.Value));
         TestLabel.Text = s.SelfTest.Status + (s.SelfTest.Active ? (s.SelfTest.Percent is int p ? $" · {p}% complete" : " · Progress unavailable") : "");
+        if (s.SelfTest.LastResult != null) TestLabel.Text += "\nLast self-test: " + s.SelfTest.LastResult;
         TestProgress.Visibility = s.SelfTest.Active ? Visibility.Visible : Visibility.Collapsed;
         TestProgress.IsIndeterminate = s.SelfTest.Active && !s.SelfTest.Percent.HasValue;
         TestProgress.Value = Math.Clamp(s.SelfTest.Percent ?? 0, 0, 100);
         EstimateLabel.Text = !s.SelfTest.Supported ? "Self-tests are unsupported or their capabilities could not be read." :
+            !s.SelfTest.ShortMinutes.HasValue && !s.SelfTest.ExtendedMinutes.HasValue ? "Self-test duration estimates were not reported by smartctl for this drive. Active tests are checked every 10 seconds." :
             $"Drive estimates: short {Estimate(s.SelfTest.ShortMinutes)}, extended {Estimate(s.SelfTest.ExtendedMinutes)}. Active tests are checked every 10 seconds.";
         MessageLabel.Text = string.Join("\n", s.Limitations);
         if (s.Identity.Length == 0) MessageLabel.Text += "\nA stable drive identity is unavailable. Self-test actions are disabled.";

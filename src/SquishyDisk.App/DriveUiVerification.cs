@@ -73,7 +73,8 @@ public partial class MainWindow
                 user_capacity = new { bytes = 1000204886016L }, smart_status = new { passed = true }, temperature = new { current = 37 }, power_on_time = new { hours = 2150 }, power_cycle_count = 142,
                 nvme_optional_admin_commands = new { self_test = true }, nvme_version = new { @string = "NVMe 1.4" },
                 nvme_smart_health_information_log = new { critical_warning = 0, percentage_used = 3, available_spare = 100, available_spare_threshold = 10, data_units_read = 11000000, data_units_written = 7000000, unsafe_shutdowns = 2, media_errors = 0 },
-                nvme_self_test_log = new { current_self_test_operation = new { value = active ? 1 : 0, @string = active ? "Short self-test in progress" : "No self-test in progress" }, current_self_test_completion_percent = active ? 40 : 0 }
+                nvme_self_test_log = new { current_self_test_operation = new { value = active ? 1 : 0, @string = active ? "Short self-test in progress" : "No self-test in progress" }, current_self_test_completion_percent = active ? 40 : 0,
+                    table = new[] { new { self_test_code = new { value = 1, @string = "Short" }, self_test_result = new { value = 0, @string = "Completed without error" }, power_on_hours = 2149 } } }
             }) : JsonSerializer.Serialize(new {
                 smartctl = new { version = new[] { 7, 5 }, exit_status = 64 }, model_name = "Example SATA HDD (sample data)", serial_number = "SAMPLE-0002", firmware_version = "2.1",
                 user_capacity = new { bytes = 4000787030016L }, smart_status = new { passed = true }, temperature = new { current = 29 }, power_on_time = new { hours = 12460 }, power_cycle_count = 397,
